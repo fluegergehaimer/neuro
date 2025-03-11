@@ -1,10 +1,8 @@
 from rest_framework import permissions
 
-class IsPaidSubscriber(permissions.BasePermission):
-    """
-    Пользовательское разрешение для проверки статуса подписки.
-    """
-    message = 'Этот контент доступен только для платных подписчиков.'
+class HasSubscriptionPermission(permissions.BasePermission):
+    message = 'У вас нет доступа к этому контенту. Требуется подписка.'
 
-    def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.is_paid() 
+    def has_object_permission(self, request, view, obj):
+        # obj может быть постом или другим контентом с required_subscription
+        return request.user.is_authenticated and request.user.has_access_to_subscription(obj.required_subscription) 

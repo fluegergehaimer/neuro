@@ -9,6 +9,26 @@ def validate_password_length(value):
             code='password_too_long'
         )
 
+class SubscriptionType(models.Model):
+    """Модель типа подписки"""
+    name = models.CharField(max_length=50, unique=True, verbose_name='Название')
+    description = models.TextField(verbose_name='Описание')
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена')
+    includes_subscriptions = models.ManyToManyField(
+        'self',
+        symmetrical=False,
+        blank=True,
+        related_name='included_in',
+    )
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = 'Тип подписки'
+        verbose_name_plural = 'Типы подписок'
+
+    def __str__(self):
+        return self.name
+
 class NeuroUser(AbstractUser):
     """Модель пользователя."""
     USERNAME_FIELD = 'email'
@@ -37,9 +57,12 @@ class NeuroUser(AbstractUser):
         verbose_name='Фамилия'
     )
 
-    is_paid_subscriber = models.BooleanField(
-        verbose_name='Платный подписчик',
-        default=False
+    subscription = models.ForeignKey(
+        SubscriptionType,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='subscribers'
     )
 
     class Meta:
@@ -50,8 +73,13 @@ class NeuroUser(AbstractUser):
     def __str__(self):
         return self.username[:20]
     
-    def is_paid(self):
-        return self.is_paid_subscriber
+    def has_access_to_subscription(self, subscription_type):
+        """Проверяет, есть ли у пользователя доступ к определенному типу подписки"""
+        if not self.subscription:
+            return False
+        if self.subscription == subscription_type:
+            return True
+        return subscription_type in self.subscription.includes_subscriptions.all()
     
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

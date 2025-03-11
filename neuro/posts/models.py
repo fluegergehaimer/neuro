@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from users.models import SubscriptionType
 
 
 class Post(models.Model):
@@ -7,6 +8,11 @@ class Post(models.Model):
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     image = models.ImageField(upload_to='media/images/', null=True, blank=True)
+    required_subscription = models.ForeignKey(
+        SubscriptionType,
+        on_delete=models.PROTECT,
+        related_name='posts'
+    )
 
     def __str__(self):
         return self.title[:20]

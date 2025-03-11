@@ -5,7 +5,8 @@ from django.contrib.auth.models import Group
 # from django.utils.safestring import mark_safe
 
 from .models import (
-    NeuroUser
+    NeuroUser,
+    SubscriptionType
 )
 
 
@@ -18,7 +19,7 @@ class NeuroUserAdmin(UserAdmin):
         'email',
         'first_name',
         'last_name',
-        'is_paid_subscriber',
+        'subscription',
     )
     search_fields = (
         'email',
@@ -27,7 +28,6 @@ class NeuroUserAdmin(UserAdmin):
         'last_name'
     )
     list_filter = (
-        'is_paid_subscriber',
         'is_staff',
         'is_active'
     )
@@ -36,7 +36,7 @@ class NeuroUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Персональная информация', {'fields': ('first_name', 'last_name', 'email')}),
-        ('Подписка', {'fields': ('is_paid_subscriber',)}),
+        ('Подписка', {'fields': ('subscription',)}),
         ('Права доступа', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Важные даты', {'fields': ('last_login', 'date_joined')}),
     )
@@ -44,6 +44,11 @@ class NeuroUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'password1', 'password2', 'is_paid_subscriber'),
+            'fields': ('username', 'email', 'password1', 'password2', 'subscription'),
         }),
     )
+
+@admin.register(SubscriptionType)
+class SubscriptionTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'price')
+    filter_horizontal = ('includes_subscriptions',)
